@@ -1,46 +1,24 @@
-from flask import Flask, abort, render_template
+from flask import Flask, render_template
 
 app = Flask(__name__)
 
-APP_NAME = "clInIcT"
-
-
-@app.context_processor
-def inject_app_name():
-    # Makes {{ app_name }} available in every template
-    return {"app_name": APP_NAME}
-
+APP_NAME = "ShuttleStack"
 
 SERVICES = [
-    {"id": 1, "name": "Medical Consultation"},
-    {"id": 2, "name": "Medical Certificates & Excuse Slips"},
-    {"id": 3, "name": "First Aid & Wound Dressing"},
-    {"id": 4, "name": "Dental Check-Up & Cleaning"},
-    {"id": 5, "name": "OJT & Athletic Medical Clearances"},
+    {"id": 1, "name": "Doubles: with a partner"},
+    {"id": 2, "name": "Doubles: group of 4"},
+    {"id": 3, "name": "Doubles: looking for a partner"},
 ]
 
-# Each ticket: number, name, email, id_number, service_id, status
+# Each ticket: number, name, email, partner, service_id, status
+# partner: the other players with you (empty if you are looking for a partner)
 # status is one of: waiting, called, served, no-show
 TICKETS = [
-    {"number": 1, "name": "Ana", "email": "ana@g.msuiit.edu.ph", "id_number": "2023-0001", "service_id": 1, "status": "waiting"},
-    {"number": 2, "name": "Ben", "email": "ben@g.msuiit.edu.ph", "id_number": "2022-0456", "service_id": 2, "status": "waiting"},
-    {"number": 3, "name": "Carla", "email": "carla@g.msuiit.edu.ph", "id_number": "2024-0789", "service_id": 1, "status": "waiting"},
+    {"number": 1, "name": "Ana", "email": "ana@g.msuiit.edu.ph", "partner": "Ben", "service_id": 1, "status": "waiting"},
+    {"number": 2, "name": "Carlo", "email": "carlo@g.msuiit.edu.ph", "partner": "", "service_id": 3, "status": "waiting"},
+    {"number": 3, "name": "Dana", "email": "dana@g.msuiit.edu.ph", "partner": "Eli, Fe, Gio", "service_id": 2, "status": "waiting"},
 ]
-
 
 @app.route("/")
 def index():
-    return render_template("index.html", tickets=TICKETS)
-
-
-@app.route("/queue/<int:ticket_id>")
-def ticket(ticket_id):
-    t = next((t for t in TICKETS if t["number"] == ticket_id), None)
-    if t is None:
-        abort(404)
-    return render_template("ticket.html", ticket=t)
-
-
-@app.route("/hello")
-def hello():
-    return "Hello, CCC181!"
+    return f"<h1>{APP_NAME}</h1><p>Badminton court queue</p>"
