@@ -1,6 +1,7 @@
-from flask import Flask, render_template
+from flask import Flask, abort, flash, redirect, render_template, request, url_for
 
 app = Flask(__name__)
+app.secret_key = "dev-only-change-me"  # Week 11 moves this into an environment variable
 
 APP_NAME = "ShuttleStack"
 
@@ -19,6 +20,24 @@ TICKETS = [
     {"number": 3, "name": "Dana", "email": "dana@g.msuiit.edu.ph", "partner": "Eli, Fe, Gio", "service_id": 2, "status": "waiting"},
 ]
 
+
+@app.context_processor
+def inject_app_name():
+    # Makes {{ app_name }} available in every template
+    return {"app_name": APP_NAME}
+
+
 @app.route("/")
 def index():
-    return f"<h1>{APP_NAME}</h1><p>Badminton court queue</p>"
+    return render_template("index.html")
+
+
+# Placeholders so the navbar links work. Part 5 and Part 7 replace these.
+@app.route("/join")
+def join_form():
+    return "Join form coming soon"
+
+
+@app.route("/staff")
+def staff_dashboard():
+    return "Staff dashboard coming soon"
