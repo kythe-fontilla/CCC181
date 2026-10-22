@@ -32,11 +32,63 @@ def index():
     return render_template("index.html")
 
 
-# Placeholders so the navbar links work. Part 5 and Part 7 replace these.
-@app.route("/join")
+@app.get("/join")
 def join_form():
-    return "Join form coming soon"
+    return render_template("join.html", services=SERVICES, form={}, errors={})
 
+
+@app.post("/join")
+def join():
+    form = request.form
+    name = form.get("name", "").strip()
+    email = form.get("email", "").strip().lower()
+    service_id = form.get("service_id", type=int)
+    partner = form.get("partner", "").strip()
+
+    errors = {}
+    if not name:
+        errors["name"] = "Enter your name."
+    if "@" not in email:
+        errors["email"] = "Enter a valid email address."
+    if service_id not in [s["id"] for s in SERVICES]:
+        errors["service_id"] = "Choose a service."
+    elif service_id in (1, 2) and not partner:
+        errors["partner"] = "Enter the name of the player or players you are playing with."
+    elif service_id == 2 and len([p for p in partner.split(",") if p.strip()]) != 3:
+        errors["partner"] = "For a group of 4, list the other 3 players, separated by commas."
+
+    if errors:
+        flash("Please fix the highlighted fields.", "danger")
+        return render_template("join.html", services=SERVICES, form=form, errors=errors), 400
+
+    number = TICKETS[-1]["number"] + 1 if TICKETS else 1
+    if service_id == 3:
+        partner = ""
+    TICKETS.append({"number": number, "name": name, "email": email, "partner": partner,
+                    "service_id": service_id, "status": "waiting"})
+    flash(f"You joined the queue. Your ticket is #{number}.", "success")
+    return redirect(url_for("ticket", ticket_id=number))
+
+@app.get("/queue/<int:ticket_id>")
+def ticket(ticket_id):
+    t = next((t for t in TICKETS if t["number"] == ticket_id), None)
+    if t is None:
+        abort(404)
+    ahead = [x for x in TICKETS
+             if x["service_id"] == t["service_id"]
+             and x["status"] == "waiting"
+             and x["number"] < t["number"]]
+    service = next(s for s in SERVICES if s["id"] == t["service_id"])
+    return render_template("ticket.html", ticket=t, service=service, ahead=len(ahead))
+
+@app.post("/queue/<int:ticket_id>/leave")
+def leave(ticket_id):
+    t = next((t for t in TICKETS if t["number"] == ticket_id), None)
+    if t is None:
+        abort(404)
+    t["status"] = "no-show"
+    flash("You left the queue.", "info")
+    return redirect(url_for("index"))
 
 @app.route("/staff")
 def staff_dashboard():

@@ -1,6 +1,50 @@
 {% extends "base.html" %}
+{% block title %}Ticket #{{ ticket.number }} · {{ app_name }}{% endblock %}
+
 {% block content %}
-  <h2>Ticket #{{ ticket.number }}</h2>
-  <p>{{ ticket.name }} is {{ ticket.status }}.</p>
-  <a href="{{ url_for('index') }}">Back home</a>
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-6">
+    <div class="card text-center">
+      <div class="card-body">
+        <h1 class="h5 text-body-secondary">Ticket number</h1>
+        <p class="display-1 fw-bold mb-0">#{{ ticket.number }}</p>
+        <p class="mb-3">Service: {{ service.name }}</p>
+
+        <div id="live-status" aria-live="polite">
+          <p class="mb-2">
+            <span id="status-badge"
+                  class="badge fs-3 {% if ticket.status == 'waiting' %}text-bg-warning
+                                    {% elif ticket.status == 'called' %}text-bg-success
+                                    {% elif ticket.status == 'served' %}text-bg-secondary
+                                    {% else %}text-bg-danger{% endif %}">
+              {{ ticket.status|capitalize }}
+            </span>
+          </p>
+          <p id="position" class="fs-5 mb-3">
+            {% if ticket.status != 'waiting' %}
+              &nbsp;
+            {% elif ahead == 0 %}
+              You're next!
+            {% else %}
+              {{ ahead }} {{ 'team' if ahead == 1 else 'teams' }} ahead of you
+            {% endif %}
+          </p>
+        </div>
+
+        {% if ticket.partner %}
+          <p class="text-body-secondary small mb-3">Playing with: {{ ticket.partner }}</p>
+        {% endif %}
+
+        <p class="text-body-secondary small mb-3">Updates by itself every 10 seconds</p>
+
+        {% if ticket.status in ('waiting', 'called') %}
+          <form method="post" action="{{ url_for('leave', ticket_id=ticket.number) }}"
+                onsubmit="return confirm('Are you sure you want to leave the queue?');">
+            <button type="submit" class="btn btn-outline-secondary">Leave the queue</button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
