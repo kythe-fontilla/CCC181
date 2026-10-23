@@ -40,6 +40,9 @@
               {% if form.get('service_id') == s.id|string %}selected{% endif %}>{{ s.name }}</option>
           {% endfor %}
         </select>
+          <div id="match-hint" class="form-text" hidden>
+            You don't need a partner. We'll match you with other players when a court is ready.
+          </div>
         {% if errors.service_id %}
           <div id="service-error" class="invalid-feedback">{{ errors.service_id }}</div>
         {% endif %}
