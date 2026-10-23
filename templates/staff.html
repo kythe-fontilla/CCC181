@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}Staff dashboard · {{ app_name }}{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-3">Staff dashboard</h1>
+
+<!-- Court status strip (FR-05) -->
+<section aria-labelledby="courts-heading" class="mb-4">
+  <h2 id="courts-heading" class="h5">Courts</h2>
+  <div class="row g-2">
+    {% for c in courts %}
+      {% set game = in_use.get(c) %}
+      <div class="col-4">
+        <div class="card text-center {% if game %}border-warning{% else %}border-success{% endif %}">
+          <div class="card-body py-2">
+            <div class="fw-bold">Court {{ c }}</div>
+            {% if game %}
+              <span class="badge text-bg-warning">In use</span>
+              <div class="small">
+                {% for t in game %}#{{ t.number }}{% if not loop.last %}, {% endif %}{% endfor %}
+              </div>
+              <div class="small">
+                {{ court_counts[c] }} of 4 players
+                {% if court_counts[c] < 4 %}<span class="badge text-bg-danger">Needs {{ 4 - court_counts[c] }} more</span>{% endif %}
+              </div>            
+            {% else %}
+              <span class="badge text-bg-success">Free</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- Filter and Call next -->
+<div class="row g-2 align-items-end mb-3">
+  <div class="col-12 col-md-6">
+    <form method="get" action="{{ url_for('staff_dashboard') }}" class="d-flex gap-2 align-items-end">
+      <div class="flex-grow-1">
+        <label for="service_id" class="form-label mb-1">Show service</label>
+        <select id="service_id" name="service_id" class="form-select">
+          <option value="">All services</option>
+          {% for s in services %}
+            <option value="{{ s.id }}" {% if selected == s.id %}selected{% endif %}>{{ s.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn btn-outline-primary" style="min-height:44px">Filter</button>
+    </form>
+  </div>
+  <div class="col-12 col-md-6">
+    <form method="post" action="{{ url_for('call_next') }}">
+      <button type="submit" class="btn btn-primary btn-lg w-100"
+              {% if all_courts_full %}disabled{% endif %}>Call next game</button>
+    </form>
+    <div class="form-text">
+      {% if all_courts_full %}
+        All 3 courts are in use. Serve a game first.
+      {% elif short %}
+        Court {{ short[0] }} needs {{ short[1] }} more. Players waiting: {{ waiting_players }}.
+      {% else %}
+        Players waiting: {{ waiting_players }}. A game needs 4.
+      {% endif %}
+    </div>
+    {% if all_courts_full %}
+      <div class="form-text">All 3 courts are in use. Serve or mark a ticket first.</div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Queue table -->
+{% if queue %}
+<div class="table-responsive">
+  <table class="table table-striped align-middle">
+    <caption>Waiting and called tickets, in join order</caption>
+    <thead>
+      <tr>
+        <th scope="col">Ticket</th>
+        <th scope="col">Name</th>
+        <th scope="col">Service</th>
+        <th scope="col">Playing with</th>
+        <th scope="col">Status</th>
+        <th scope="col">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in queue %}
+      <tr>
+        <th scope="row">#{{ t.number }}</th>
+        <td>{{ t.name }}</td>
+        <td>{{ names[t.service_id] }}</td>
+        <td>{{ t.partner or "—" }}</td>
+        <td>
+          {% if t.status == "called" %}
+            <span class="badge text-bg-primary">Called (Court {{ t.court }})</span>
+          {% else %}
+            <span class="badge text-bg-warning">Waiting</span>
+          {% endif %}
+        </td>
+        <td>
+          <div class="d-flex gap-2">
+            <form method="post" action="{{ url_for('staff_action', ticket_id=t.number, action='serve') }}">
+              <button type="submit" class="btn btn-success" style="min-height:44px"
+                      aria-label="Mark ticket {{ t.number }} and it's court's game as served"
+                      {% if t.status != "called" %}disabled{% endif %}>Serve</button>
+            </form>
+            <form method="post" action="{{ url_for('staff_action', ticket_id=t.number, action='no-show') }}"
+                  onsubmit="return confirm('Mark ticket {{ t.number }} as no-show?');">
+              <button type="submit" class="btn btn-outline-danger" style="min-height:44px"
+                      aria-label="Mark ticket {{ t.number }} as no-show">No-show</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+  <div class="alert alert-secondary" role="status">No one is waiting.</div>
+{% endif %}
+{% endblock %}
