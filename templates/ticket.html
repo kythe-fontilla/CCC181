@@ -17,7 +17,7 @@
                                     {% elif ticket.status == 'called' %}text-bg-success
                                     {% elif ticket.status == 'served' %}text-bg-secondary
                                     {% else %}text-bg-danger{% endif %}">
-              {{ ticket.status|capitalize }}
+              {{ ticket.status|capitalize }}{% if ticket.status == 'called' and ticket.court %} (Court {{ ticket.court }}){% endif %}
             </span>
           </p>
           <p id="position" class="fs-5 mb-3">
@@ -35,10 +35,13 @@
           <p class="text-body-secondary small mb-3">Playing with: {{ ticket.partner }}</p>
         {% endif %}
 
-        <p class="text-body-secondary small mb-3">Updates by itself every 10 seconds</p>
+        <p id="last-updated" class="text-body-secondary small mb-1">Updates by itself every 10 seconds</p>
+        <p id="refresh-error" class="text-danger small mb-3" role="status" hidden>
+          Can't refresh. Check your connection.
+        </p>
 
         {% if ticket.status in ('waiting', 'called') %}
-          <form method="post" action="{{ url_for('leave', ticket_id=ticket.number) }}"
+          <form id="leave-form" method="post" action="{{ url_for('leave', ticket_id=ticket.number) }}"
                 onsubmit="return confirm('Are you sure you want to leave the queue?');">
             <button type="submit" class="btn btn-outline-secondary">Leave the queue</button>
           </form>
@@ -47,4 +50,58 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const statusUrl = "{{ url_for('ticket_status', ticket_id=ticket.number) }}";
+  const badge = document.getElementById("status-badge");
+  const position = document.getElementById("position");
+  const lastUpdated = document.getElementById("last-updated");
+  const refreshError = document.getElementById("refresh-error");
+  const leaveForm = document.getElementById("leave-form");
+
+  const BADGE_COLORS = {
+    "waiting": "text-bg-warning",
+    "called": "text-bg-success",
+    "served": "text-bg-secondary",
+    "no-show": "text-bg-danger"
+  };
+
+  function statusLabel(status, court) {
+    const text = status.charAt(0).toUpperCase() + status.slice(1);
+    return status === "called" && court ? text + " (Court " + court + ")" : text;
+  }
+
+  async function refreshStatus() {
+    try {
+      const res = await fetch(statusUrl);
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const data = await res.json();
+
+      badge.className = "badge fs-3 " + (BADGE_COLORS[data.status] || "text-bg-secondary");
+      badge.textContent = statusLabel(data.status, data.court);
+
+      if (data.status !== "waiting") {
+        position.textContent = "\u00a0";
+      } else if (data.ahead === 0) {
+        position.textContent = "You're next!";
+      } else {
+        position.textContent = data.ahead + (data.ahead === 1 ? " team" : " teams") + " ahead of you";
+      }
+
+      if (leaveForm && data.status !== "waiting" && data.status !== "called") {
+        leaveForm.hidden = true;
+      }
+
+      refreshError.hidden = true;
+      lastUpdated.textContent = "Last updated " + new Date().toLocaleTimeString();
+    } catch (err) {
+      refreshError.hidden = false;
+      console.warn("Could not refresh status", err);
+    }
+  }
+
+  setInterval(refreshStatus, 10000);
+</script>
 {% endblock %}

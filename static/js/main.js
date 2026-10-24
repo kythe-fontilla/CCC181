@@ -14,3 +14,13 @@ if (serviceSelect && partnerInput) {
   serviceSelect.addEventListener("change", syncPartner);
   syncPartner();
 }
+
+// Stop double joining: disable the button once the form is submitted
+const joinForm = document.getElementById("join-form");
+if (joinForm) {
+  joinForm.addEventListener("submit", () => {
+    const button = joinForm.querySelector("button[type=submit]");
+    button.disabled = true;
+    button.textContent = "Getting your ticket…";
+  });
+}
