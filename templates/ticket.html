@@ -43,7 +43,7 @@
         {% if ticket.status in ('waiting', 'called') %}
           <form id="leave-form" method="post" action="{{ url_for('leave', ticket_id=ticket.number) }}"
                 onsubmit="return confirm('Are you sure you want to leave the queue?');">
-            <button type="submit" class="btn btn-outline-secondary">Leave the queue</button>
+            <button type="submit" class="btn btn-outline-secondary" style="min-height:44px">Leave the queue</button>
           </form>
         {% endif %}
       </div>
