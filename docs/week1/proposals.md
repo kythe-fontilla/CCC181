@@ -1,7 +1,7 @@
 # Week 1 Proposal: ShuttleStack
 
 ## Setting
-A public badminton venue with 3 courts and a 50-peso flat entry fee that
+A public badminton venue in Wet Market, Iligan City with 3 courts and a 50-peso flat entry fee that
 covers play for the whole day. There is no written queue; players wait for
 a court by asking the teams currently playing.
 

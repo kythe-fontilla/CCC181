@@ -1,4 +1,5 @@
 from flask import Flask, abort, flash, redirect, render_template, request, url_for
+from itertools import combinations
 
 app = Flask(__name__)
 app.secret_key = "dev-only-change-me"  # Week 11 moves this into an environment variable
@@ -27,9 +28,9 @@ def players_of(t):
 # partner: the other players with you (empty if you are looking for a partner)
 # status is one of: waiting, called, served, no-show
 TICKETS = [
-    {"number": 1, "name": "Ana", "email": "ana@g.msuiit.edu.ph", "partner": "Ben", "service_id": 1, "status": "waiting", "court": None, "players": 2},
-    {"number": 2, "name": "Carlo", "email": "carlo@g.msuiit.edu.ph", "partner": "", "service_id": 3, "status": "waiting", "court": None, "players": 1},
-    {"number": 3, "name": "Dana", "email": "dana@g.msuiit.edu.ph", "partner": "Eli, Fe, Gio", "service_id": 2, "status": "waiting", "court": None, "players": 4},
+    {"number": 1, "name": "Dana", "email": "dana@g.msuiit.edu.ph", "partner": "Eli, Fe, Gio", "service_id": 2, "status": "waiting", "court": None, "players": 4},
+    {"number": 2, "name": "Ana", "email": "ana@g.msuiit.edu.ph", "partner": "Ben", "service_id": 1, "status": "waiting", "court": None, "players": 2},
+    {"number": 3, "name": "Carlo", "email": "carlo@g.msuiit.edu.ph", "service_id": 3, "status": "waiting", "court": None, "players": 1},
 ]
 
 def courts_in_use():
@@ -55,20 +56,20 @@ def short_court():
 
 
 def pick_next_game(needed=GAME_SIZE):
-    """Walk the waiting tickets in join order and collect exactly `needed` players.
-    A ticket that would overshoot is skipped, so nobody is split.
-    Returns the list of tickets, or None if it can't be filled yet."""
-    group, total = [], 0
-    for t in sorted((t for t in TICKETS if t["status"] == "waiting"),
-                    key=lambda t: t["number"]):
-        p = players_of(t)
-        if total + p <= needed:
-            group.append(t)
-            total += p
-        if total == needed:
-            return group
-    return None
-
+    """Find a set of waiting tickets that adds up to exactly `needed` players.
+    Among all possible sets, choose the one with the earliest ticket numbers,
+    so the longest-waiting teams play first and nobody is split.
+    Returns the list of tickets, or None if no set adds up."""
+    waiting = sorted((t for t in TICKETS if t["status"] == "waiting"),
+                     key=lambda t: t["number"])
+    best, best_key = None, None
+    for size in range(1, needed + 1):
+        for combo in combinations(waiting, size):
+            if sum(players_of(t) for t in combo) == needed:
+                key = [t["number"] for t in combo]
+                if best_key is None or key < best_key:
+                    best, best_key = combo, key
+    return list(best) if best else None
 
 def first_free_court():
     used = courts_in_use()
