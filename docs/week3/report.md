@@ -22,8 +22,6 @@ Top tasks: see the waiting list in order and call, serve or mark a no-show (FR-0
 
 ## 3. Screens
 
-(Take these six screenshots and save them in `docs/week3/screenshots/`. Take the staff ones with a game on a court, so the star feature is visible.)
-
 **Join, phone.** Used by Jerald on his phone. Covers FR-01.
 ![Join on a phone](screenshots/join-phone.png)
 
