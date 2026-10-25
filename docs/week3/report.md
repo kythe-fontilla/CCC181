@@ -8,7 +8,7 @@
 - **Student ID:** 2024-0812
 - **Section:** CS3B
 - **Date:** October 25, 2026
-- **Pull request:** (link to your merged pull request)
+- **Pull request:** https://github.com/kythe-fontilla/CCC181/pull/2
 
 ## 2. Personas
 
