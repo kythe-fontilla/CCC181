@@ -20,14 +20,14 @@ a court by asking the teams currently playing.
 ## Functional requirements
 | ID | Requirement | Priority |
 | --- | --- | --- |
-| FR-01 | A player can join the queue as a team or alone and get a ticket | Must |
+| FR-01 | A player can join the queue as a pair, group of 4, or alone and get a ticket | Must |
 | FR-02 | A player can see their ticket number, status and how many teams are ahead | Must |
 | FR-03 | The caretaker can view the waiting list in order and call, serve or mark no-show | Must |
 | FR-04 | A player can leave the queue | Should |
 | FR-05 | The caretaker can assign a called ticket to a court (1 to 3) and see which courts are in use (star) | Should |
-| FR-06 | The caretaker can see how many games each waiting team has played and how long they have waited (star) | Should |
+| FR-06 | The caretaker can see how many games each waiting team has played and how long they have waited (star) | Should (later) |
 
-## Observation notes (date, time, place: <fill in>)
+## Observation notes
 - No list. Players ask the playing team "naay musunod sa inyoha?" (observation)
 - 4 to 8 people wait at the same court; doubles fills up fast (observation)
 - A 21-point game should take 20 to 30 minutes, but runs to 40 because
