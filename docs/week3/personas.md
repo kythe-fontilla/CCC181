@@ -4,7 +4,7 @@
 
 | | |
 | --- | --- |
-| **Photo or sketch** | 🏸 Icon: shuttlecock emoji (no photo of a real person) |
+| **Photo or sketch** | 🏸 Icon: shuttlecock emoji |
 | **Age, role and background** | 24, a working adult who goes to the court after work |
 | **Goals** | Get a turn without having to ask the playing teams "naay musunod sa inyoha?" *(interview)*. See the queue and the current status of those playing *(interview)*. Find a partner if he arrives alone *(interview)*. |
 | **Frustrations** | There is no clear list of who is next, so he talks to the current players and, if all 3 courts are full, asks the other courts *(interview)*. He can't see the score, so he doesn't know when a game will finish *(interview)*. He is shy to approach players ("maulaw kog approach") *(interview)*. |
@@ -37,7 +37,7 @@ Jerald arrives at the court after work and finds all 3 courts full. He and his p
 
 | | |
 | --- | --- |
-| **Photo or sketch** | 🪙 Icon: coin emoji (no photo of a real person) |
+| **Photo or sketch** | 🪙 Icon: coin emoji|
 | **Age, role and background** | 20, collects the 50 pesos at the venue and decides who plays next *(interview)* |
 | **Goals** | Make sure the team that has waited longest or played fewer games goes next *(interview)*. Know who is on the court and how many games each team has played *(interview)*. Know whether a team came together or is also open to playing with others *(interview)*. |
 | **Frustrations** | She keeps track of who is waiting by "just memory or estimate lang" *(interview)*. When many people are waiting and she doesn't know who wants to play, she leaves it to chance: "ginapabay-an nalang nako kinsay musunod" *(interview)*. Some players can't play or wait too long because it isn't clear who is next *(interview)*. When two teams both say it's their turn, she has to ask how many games each has played *(interview)*. |
