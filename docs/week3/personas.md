@@ -6,7 +6,7 @@
 | --- | --- |
 | **Photo or sketch** | 🏸 Icon: shuttlecock emoji |
 | **Age, role and background** | 24, a working adult who goes to the court after work |
-| **Goals** | Get a turn without having to ask the playing teams "naay musunod sa inyoha?" *(interview)*. See the queue and the current status of those playing *(interview)*. Find a partner if he arrives alone *(interview)*. |
+| **Goals** | Get a turn without having to ask the playing teams "naay musunod sa inyoha?" *(observation)*. See the queue and the current status of those playing *(interview)*. Find a partner if he arrives alone *(interview)*. |
 | **Frustrations** | There is no clear list of who is next, so he talks to the current players and, if all 3 courts are full, asks the other courts *(interview)*. He can't see the score, so he doesn't know when a game will finish *(interview)*. He is shy to approach players ("maulaw kog approach") *(interview)*. |
 | **Devices and context** | Mobile phone, on mobile data because there is no Wi-Fi at the court *(interview)*. Does warm-ups while waiting and sometimes leaves the court to eat *(interview)*. |
 | **Tech comfort** | Medium. He uses his phone and mobile data every day, but he has only ever queued by asking people, never with an app. |
