@@ -59,7 +59,7 @@
 | tickets | user_id | integer | NOT NULL REFERENCES users(id) ON DELETE RESTRICT | No ticket without a person |
 | tickets | service_id | integer | NOT NULL REFERENCES services(id) ON DELETE RESTRICT | No ticket for a missing service |
 | tickets | status | varchar(20) | NOT NULL DEFAULT 'waiting', CHECK (status IN ('waiting', 'called', 'served', 'no-show', 'left')) | Only these five statuses exist |
-| tickets | court | integer | CHECK (court IS NULL OR court BETWEEN 1 AND 3) | Empty when not on a court; the venue has 3 courts (FR-05) |
+| tickets | court | integer | CHECK (court IS NULL OR (court BETWEEN 1 AND 3 AND status = 'called')) | Empty when not on a court; the venue has 3 courts (FR-05) |
 | tickets | open_to_singles | boolean | NOT NULL DEFAULT false | The player's opt-in (FR-11) |
 | tickets | created_at | timestamptz | NOT NULL DEFAULT now() | Join order and wait time, set by the database |
 | tickets | called_at | timestamptz | *(nullable)* | Empty until the ticket is called |
