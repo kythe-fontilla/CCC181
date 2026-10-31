@@ -1,8 +1,23 @@
-from flask import Flask, abort, flash, redirect, render_template, request, url_for
+import os
+
 from itertools import combinations
+from dotenv import load_dotenv
+from flask import Flask, abort, flash, redirect, render_template, request, url_for
+from flask_migrate import Migrate
+from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
+
+from models import Service, Ticket, TicketMember, User, db
+
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = "dev-only-change-me"  # Week 11 moves this into an environment variable
+app.secret_key = "dev-only-change-me"  # moves into an environment variable later
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["DATABASE_URL"]
+app.config["SQLALCHEMY_ECHO"] = os.environ.get("SQLALCHEMY_ECHO") == "1"
+
+db.init_app(app)
+migrate = Migrate(app, db)
 
 APP_NAME = "ShuttleStack"
 
