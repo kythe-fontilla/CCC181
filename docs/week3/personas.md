@@ -54,7 +54,7 @@ It is a busy evening and all 3 courts are in use. Swishy is collecting the 50 pe
 | Task | Screen | Requirement ID |
 | --- | --- | --- |
 | See the waiting list in order and call, serve or mark a no-show | Staff dashboard | FR-03 |
-| Assign a called ticket to a court (1 to 3) and see which courts are in use | Staff dashboard | FR-05 |
+| Assign a called ticket to a court (1 to 3) and see which courts are in use and which ticket is on each | Staff dashboard | FR-05 |
 
 ### What this means for my interface
 
