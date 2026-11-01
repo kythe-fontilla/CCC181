@@ -37,6 +37,7 @@
           </p>
         {% endif %}
 
+        <p class="text-body-secondary small mb-3">Joined {{ ticket.created_at|local }}</p>
         <p id="last-updated" class="text-body-secondary small mb-1">Updates by itself every 10 seconds</p>
         <p id="refresh-error" class="text-danger small mb-3" role="status" hidden>
           Can't refresh. Check your connection.

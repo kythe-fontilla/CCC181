@@ -6,6 +6,7 @@ from flask import Flask, abort, flash, redirect, render_template, request, url_f
 from flask_migrate import Migrate
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
+from datetime import timedelta, timezone
 
 from models import Service, Ticket, TicketMember, User, db
 
@@ -18,6 +19,13 @@ app.config["SQLALCHEMY_ECHO"] = os.environ.get("SQLALCHEMY_ECHO") == "1"
 
 db.init_app(app)
 migrate = Migrate(app, db)
+
+PH_TIME = timezone(timedelta(hours=8))  # Philippine time has no daylight saving
+
+@app.template_filter("local")
+def local_time(value):
+    """Show a database time in Philippine time, e.g. Oct 31, 04:53 PM."""
+    return value.astimezone(PH_TIME).strftime("%b %d, %I:%M %p") if value else ""
 
 @app.cli.command("seed")
 def seed():
@@ -52,7 +60,7 @@ def count_names(text):
 
 
 def players_of(t):
-    return t["players"]
+    return t.players
 
 # Each ticket: number, name, email, partner, service_id, status
 # partner: the other players with you (empty if you are looking for a partner)
@@ -65,10 +73,12 @@ TICKETS = [
 
 def courts_in_use():
     """Return {court_number: [tickets]} for courts with a game in progress."""
+    stmt = (db.select(Ticket)
+            .where(Ticket.status == "called", Ticket.court.is_not(None))
+            .order_by(Ticket.id))
     used = {}
-    for t in TICKETS:
-        if t["status"] == "called" and t["court"] is not None:
-            used.setdefault(t["court"], []).append(t)
+    for t in db.session.scalars(stmt):
+        used.setdefault(t.court, []).append(t)
     return used
 
 
@@ -122,6 +132,14 @@ def index():
 def all_services():
     return db.session.scalars(db.select(Service).order_by(Service.id)).all()
 
+def people_ahead(t):
+    """Count tickets still waiting for the same service that joined before t."""
+    stmt = (db.select(func.count())
+            .select_from(Ticket)
+            .where(Ticket.service_id == t.service_id,
+                   Ticket.status == "waiting",
+                   Ticket.created_at < t.created_at))
+    return db.session.scalar(stmt)
 
 def active_services():
     stmt = db.select(Service).filter_by(active=True).order_by(Service.id)
@@ -201,26 +219,15 @@ def join():
 
 @app.get("/queue/<int:ticket_id>")
 def ticket(ticket_id):
-    t = next((t for t in TICKETS if t["number"] == ticket_id), None)
-    if t is None:
-        abort(404)
-    ahead = [x for x in TICKETS
-             if x["service_id"] == t["service_id"]
-             and x["status"] == "waiting"
-             and x["number"] < t["number"]]
-    service = next(s for s in SERVICES if s["id"] == t["service_id"])
-    return render_template("ticket.html", ticket=t, service=service, ahead=len(ahead))
+    t = db.get_or_404(Ticket, ticket_id)
+    return render_template("ticket.html", ticket=t, service=t.service,
+                           ahead=people_ahead(t))
+
 
 @app.get("/queue/<int:ticket_id>/status.json")
 def ticket_status(ticket_id):
-    t = next((t for t in TICKETS if t["number"] == ticket_id), None)
-    if t is None:
-        abort(404)
-    ahead = sum(1 for x in TICKETS
-                if x["service_id"] == t["service_id"]
-                and x["status"] == "waiting"
-                and x["number"] < t["number"])
-    return {"status": t["status"], "ahead": ahead, "court": t["court"]}
+    t = db.get_or_404(Ticket, ticket_id)
+    return {"status": t.status, "ahead": people_ahead(t), "court": t.court}
 
 @app.post("/queue/<int:ticket_id>/leave")
 def leave(ticket_id):
@@ -235,23 +242,27 @@ def leave(ticket_id):
 @app.get("/staff")
 def staff_dashboard():
     service_id = request.args.get("service_id", type=int)
-    queue = [t for t in TICKETS if t["status"] in ("waiting", "called")]
+    stmt = (db.select(Ticket)
+            .where(Ticket.status.in_(["waiting", "called"]))
+            .order_by(Ticket.created_at, Ticket.id))
     if service_id:
-        queue = [t for t in queue if t["service_id"] == service_id]
-    queue.sort(key=lambda t: t["number"])
-    names = {s["id"]: s["name"] for s in SERVICES}
+        stmt = stmt.where(Ticket.service_id == service_id)
+    queue = db.session.scalars(stmt).all()
+
+    used = courts_in_use()
+    waiting = db.session.scalars(
+        db.select(Ticket).filter_by(status="waiting")).all()
     return render_template(
         "staff.html",
         queue=queue,
-        services=SERVICES,
-        names=names,
+        services=all_services(),
         selected=service_id,
         courts=COURTS,
-        in_use=courts_in_use(),
+        in_use=used,
         all_courts_full=first_free_court() is None and short_court() is None,
         short=short_court(),
-        court_counts={c: court_players(g) for c, g in courts_in_use().items()},
-        waiting_players=sum(players_of(t) for t in TICKETS if t["status"] == "waiting"),
+        court_counts={c: court_players(g) for c, g in used.items()},
+        waiting_players=sum(players_of(t) for t in waiting),
     )
 
 @app.post("/staff/tickets/<int:ticket_id>/<action>")
