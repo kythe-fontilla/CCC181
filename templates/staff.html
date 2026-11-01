@@ -112,6 +112,11 @@
               <button type="submit" class="btn btn-outline-danger" style="min-height:44px"
                       aria-label="Mark ticket {{ t.id }} as no-show">No-show</button>
             </form>
+            <form method="post" action="{{ url_for('delete_ticket', ticket_id=t.id) }}"
+                  data-confirm="Delete ticket {{ t.id }}? This cannot be undone.">
+              <button type="submit" class="btn btn-outline-secondary" style="min-height:44px"
+                      aria-label="Delete ticket {{ t.id }}">Delete</button>
+            </form>
           </div>
         </td>
       </tr>

@@ -1,8 +1,8 @@
 from datetime import datetime
 
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import (CheckConstraint, DateTime, ForeignKey, String,
-                        false, func, true)
+from sqlalchemy import (CheckConstraint, DateTime, ForeignKey, Index, String,
+                        false, func, text, true)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 db = SQLAlchemy()
@@ -64,6 +64,8 @@ class Ticket(db.Model):
         CheckConstraint(
             "court IS NULL OR (court BETWEEN 1 AND 3 AND status = 'called')",
             name="ck_tickets_court"),
+        Index("uq_tickets_one_active_per_user", "user_id", unique=True,
+                postgresql_where=text("status IN ('waiting', 'called')")),       
     )
 
     @property

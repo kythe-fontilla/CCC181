@@ -96,20 +96,21 @@ def short_court():
 
 
 def pick_next_game(needed=GAME_SIZE):
-    """Find a set of waiting tickets that adds up to exactly `needed` players.
-    Among all possible sets, choose the one with the earliest ticket numbers,
-    so the longest-waiting teams play first and nobody is split.
-    Returns the list of tickets, or None if no set adds up."""
-    waiting = sorted((t for t in TICKETS if t["status"] == "waiting"),
-                     key=lambda t: t["number"])
-    best, best_key = None, None
-    for size in range(1, needed + 1):
+    """Find waiting tickets that add up to exactly `needed` players.
+    Among the possible sets, choose the one with the earliest tickets,
+    so nobody is split and passed-over tickets are tried first next time.
+    Returns a list of tickets, or None if it cannot be filled yet."""
+    waiting = db.session.scalars(
+        db.select(Ticket).filter_by(status="waiting")
+        .order_by(Ticket.created_at, Ticket.id).limit(12)).all()
+    best = None
+    for size in range(1, len(waiting) + 1):
         for combo in combinations(waiting, size):
             if sum(players_of(t) for t in combo) == needed:
-                key = [t["number"] for t in combo]
-                if best_key is None or key < best_key:
-                    best, best_key = combo, key
-    return list(best) if best else None
+                key = sorted(t.id for t in combo)
+                if best is None or key < best[0]:
+                    best = (key, list(combo))
+    return best[1] if best else None
 
 def first_free_court():
     used = courts_in_use()
@@ -123,11 +124,9 @@ def inject_app_name():
     # Makes {{ app_name }} available in every template
     return {"app_name": APP_NAME}
 
-
 @app.route("/")
 def index():
     return render_template("index.html")
-
 
 def all_services():
     return db.session.scalars(db.select(Service).order_by(Service.id)).all()
@@ -210,7 +209,8 @@ def join():
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
-        flash("Something went wrong saving your ticket. Please try again.", "danger")
+        flash("You already have an active ticket, or something went wrong saving. "
+              "Please check My place or try again.", "danger")
         return render_template("join.html", services=active_services(),
                                form=form, errors={}), 409
 
@@ -231,13 +231,21 @@ def ticket_status(ticket_id):
 
 @app.post("/queue/<int:ticket_id>/leave")
 def leave(ticket_id):
-    t = next((t for t in TICKETS if t["number"] == ticket_id), None)
-    if t is None:
-        abort(404)
-    t["status"] = "no-show"
-    t["court"] = None
+    t = db.get_or_404(Ticket, ticket_id)
+    if t.status in ("waiting", "called"):
+        t.status = "left"  # soft delete: the row stays for reports
+        t.court = None     # the court CHECK only allows a court while called
+        db.session.commit()
     flash("You left the queue.", "info")
     return redirect(url_for("index"))
+
+@app.post("/staff/tickets/<int:ticket_id>/delete")
+def delete_ticket(ticket_id):
+    t = db.get_or_404(Ticket, ticket_id)
+    db.session.delete(t)  # hard delete: the row is gone for good
+    db.session.commit()
+    flash(f"Ticket #{ticket_id} was deleted.", "warning")
+    return redirect(url_for("staff_dashboard"))
 
 @app.get("/staff")
 def staff_dashboard():
@@ -265,29 +273,35 @@ def staff_dashboard():
         waiting_players=sum(players_of(t) for t in waiting),
     )
 
+STAFF_ACTIONS = ("serve", "no-show")
+
+
 @app.post("/staff/tickets/<int:ticket_id>/<action>")
 def staff_action(ticket_id, action):
-    t = next((t for t in TICKETS if t["number"] == ticket_id), None)
-    if t is None or action not in ("serve", "no-show"):
+    if action not in STAFF_ACTIONS:
         abort(404)
+    t = db.get_or_404(Ticket, ticket_id)
 
     if action == "serve":
-        if t["status"] != "called":
+        if t.status != "called":
             flash(f"Ticket #{ticket_id} must be called before it can be served.", "warning")
             return redirect(url_for("staff_dashboard"))
-        court = t["court"]
-        game = [x for x in TICKETS if x["status"] == "called" and x["court"] == court]
+        court = t.court
+        game = db.session.scalars(
+            db.select(Ticket).filter_by(status="called", court=court)).all()
         for x in game:
-            x["status"] = "served"
-            x["court"] = None
-        numbers = ", ".join(f"#{x['number']}" for x in game)
+            x.status = "served"
+            x.court = None
+        db.session.commit()
+        numbers = ", ".join(f"#{x.id}" for x in game)
         flash(f"Court {court} finished: {numbers} marked served.", "info")
     else:  # no-show
-        if t["status"] not in ("waiting", "called"):
-            flash(f"Ticket #{ticket_id} is already {t['status']}.", "warning")
+        if t.status not in ("waiting", "called"):
+            flash(f"Ticket #{ticket_id} is already {t.status}.", "warning")
             return redirect(url_for("staff_dashboard"))
-        t["status"] = "no-show"
-        t["court"] = None
+        t.status = "no-show"
+        t.court = None
+        db.session.commit()
         flash(f"Ticket #{ticket_id} marked no-show.", "info")
 
     return redirect(url_for("staff_dashboard"))
@@ -301,24 +315,23 @@ def call_next():
         if group is None:
             flash(f"Court {court} needs {gap} more player(s), but no waiting ticket fits yet.", "warning")
             return redirect(url_for("staff_dashboard"))
-        for t in group:
-            t["status"] = "called"
-            t["court"] = court
-        numbers = ", ".join(f"#{t['number']}" for t in group)
-        flash(f"Court {court} filled: called {numbers}.", "info")
-        return redirect(url_for("staff_dashboard"))
+        message = f"Court {court} filled: called"
+    else:
+        court = first_free_court()
+        if court is None:
+            flash("All 3 courts are in use. Serve a game first.", "warning")
+            return redirect(url_for("staff_dashboard"))
+        group = pick_next_game()
+        if group is None:
+            flash("Not enough players yet to fill a game of 4.", "warning")
+            return redirect(url_for("staff_dashboard"))
+        message = f"Court {court}: called"
 
-    court = first_free_court()
-    if court is None:
-        flash("All 3 courts are in use. Serve a game first.", "warning")
-        return redirect(url_for("staff_dashboard"))
-    group = pick_next_game()
-    if group is None:
-        flash("Not enough players yet to fill a game of 4.", "warning")
-        return redirect(url_for("staff_dashboard"))
     for t in group:
-        t["status"] = "called"
-        t["court"] = court
-    numbers = ", ".join(f"#{t['number']}" for t in group)
-    flash(f"Court {court}: called {numbers}.", "info")
+        t.status = "called"
+        t.court = court
+        t.called_at = func.now()  # the database fills in the time
+    db.session.commit()
+    numbers = ", ".join(f"#{t.id}" for t in group)
+    flash(f"{message} {numbers}.", "info")
     return redirect(url_for("staff_dashboard"))
