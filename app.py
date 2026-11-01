@@ -119,9 +119,19 @@ def index():
     return render_template("index.html")
 
 
+def all_services():
+    return db.session.scalars(db.select(Service).order_by(Service.id)).all()
+
+
+def active_services():
+    stmt = db.select(Service).filter_by(active=True).order_by(Service.id)
+    return db.session.scalars(stmt).all()
+
+
 @app.get("/join")
 def join_form():
-    return render_template("join.html", services=SERVICES, form={}, errors={})
+    return render_template("join.html", services=active_services(),
+                           form={}, errors={})
 
 
 @app.post("/join")
@@ -131,47 +141,63 @@ def join():
     email = form.get("email", "").strip().lower()
     service_id = form.get("service_id", type=int)
     partner = form.get("partner", "").strip()
+    open_to_singles = form.get("open_to_singles") == "on"
+    service = db.session.get(Service, service_id) if service_id else None
 
     errors = {}
-    if not name:
-        errors["name"] = "Enter your name."
-    if "@" not in email:
+    if not name or len(name) > 80:
+        errors["name"] = "Enter your name (up to 80 characters)."
+    if "@" not in email or len(email) > 120:
         errors["email"] = "Enter a valid email address."
-    if service_id not in [s["id"] for s in SERVICES]:
+    if service is None or not service.active:
         errors["service_id"] = "Choose a service."
 
-    if service_id == 1:
-        if count_names(partner) != 1:
-            errors["partner"] = ("This option is for 2 players. Enter exactly 1 name, "
-                                 "or choose 'looking for a partner' if you are alone.")
-    elif service_id == 2:
-        if count_names(partner) != 3:
-            errors["partner"] = "A group of 4 needs exactly 3 other names, separated by commas."
-    elif service_id == 3:
-        partner = ""
+    members = []
+    if service is not None and service.active:
+        if service.id == 3:
+            partner = ""
+        else:
+            members = [n.strip() for n in partner.split(",") if n.strip()]
+            if service.id == 1 and len(members) != 1:
+                errors["partner"] = ("This option is for 2 players. Enter exactly 1 name, "
+                                     "or choose 'looking for a partner' if you are alone.")
+            elif service.id == 2 and len(members) != 3:
+                errors["partner"] = "A group of 4 needs exactly 3 other names, separated by commas."
+            elif any(len(n) > 80 for n in members):
+                errors["partner"] = "Each name can have up to 80 characters."
+
+    user = None
+    if "email" not in errors:
+        user = db.session.scalar(db.select(User).filter_by(email=email))
+        if user is not None:
+            active = db.session.scalar(
+                db.select(Ticket)
+                .filter_by(user_id=user.id)
+                .where(Ticket.status.in_(["waiting", "called"])))
+            if active is not None:
+                errors["email"] = (f"You already have ticket #{active.id}. "
+                                   "Leave it first if you want to join again.")
 
     if errors:
         flash("Please fix the highlighted fields.", "danger")
-        return render_template("join.html", services=SERVICES, form=form,
-                               errors=errors), 400
+        return render_template("join.html", services=active_services(),
+                               form=form, errors=errors), 400
 
-    # Tidy the commas: "Eli,Fe ,Gio" is saved as "Eli, Fe, Gio"
-    partner = ", ".join(n.strip() for n in partner.split(",") if n.strip())
-    players = 1 + count_names(partner)
+    if user is None:
+        user = User(name=name, email=email)
+    ticket = Ticket(user=user, service=service, open_to_singles=open_to_singles,
+                    members=[TicketMember(name=n) for n in members])
+    db.session.add(ticket)
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        flash("Something went wrong saving your ticket. Please try again.", "danger")
+        return render_template("join.html", services=active_services(),
+                               form=form, errors={}), 409
 
-    number = TICKETS[-1]["number"] + 1 if TICKETS else 1
-    TICKETS.append({
-        "number": number,
-        "name": name,
-        "email": email,
-        "partner": partner,
-        "service_id": service_id,
-        "status": "waiting",
-        "court": None,
-        "players": players,
-    })
-    flash(f"You joined the queue. Your ticket is #{number}.", "success")
-    return redirect(url_for("ticket", ticket_id=number))
+    flash(f"You joined the queue. Your ticket is #{ticket.id}.", "success")
+    return redirect(url_for("ticket", ticket_id=ticket.id))
 
 @app.get("/queue/<int:ticket_id>")
 def ticket(ticket_id):

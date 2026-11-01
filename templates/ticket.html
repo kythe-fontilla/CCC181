@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Ticket #{{ ticket.number }} · {{ app_name }}{% endblock %}
+{% block title %}Ticket #{{ ticket.id }} · {{ app_name }}{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
@@ -7,7 +7,7 @@
     <div class="card text-center">
       <div class="card-body">
         <h1 class="h5 text-body-secondary">Ticket number</h1>
-        <p class="display-1 fw-bold mb-0">#{{ ticket.number }}</p>
+        <p class="display-1 fw-bold mb-0">#{{ ticket.id }}</p>
         <p class="mb-3">Service: {{ service.name }}</p>
 
         <div id="live-status" aria-live="polite">
@@ -31,8 +31,10 @@
           </p>
         </div>
 
-        {% if ticket.partner %}
-          <p class="text-body-secondary small mb-3">Playing with: {{ ticket.partner }}</p>
+        {% if ticket.members %}
+          <p class="text-body-secondary small mb-3">
+            Playing with: {{ ticket.members|map(attribute='name')|join(', ') }}
+          </p>
         {% endif %}
 
         <p id="last-updated" class="text-body-secondary small mb-1">Updates by itself every 10 seconds</p>
@@ -41,7 +43,7 @@
         </p>
 
         {% if ticket.status in ('waiting', 'called') %}
-          <form id="leave-form" method="post" action="{{ url_for('leave', ticket_id=ticket.number) }}"
+          <form id="leave-form" method="post" action="{{ url_for('leave', ticket_id=ticket.id) }}"
                 onsubmit="return confirm('Are you sure you want to leave the queue?');">
             <button type="submit" class="btn btn-outline-secondary" style="min-height:44px">Leave the queue</button>
           </form>
@@ -54,7 +56,7 @@
 
 {% block scripts %}
 <script>
-  const statusUrl = "{{ url_for('ticket_status', ticket_id=ticket.number) }}";
+  const statusUrl = "{{ url_for('ticket_status', ticket_id=ticket.id) }}";
   const badge = document.getElementById("status-badge");
   const position = document.getElementById("position");
   const lastUpdated = document.getElementById("last-updated");
