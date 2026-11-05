@@ -83,6 +83,8 @@
         <th scope="col">Playing with</th>
         <th scope="col">Status</th>
         <th scope="col">Joined</th>
+        <th scope="col">Games played</th>
+        <th scope="col">Waited</th>
         <th scope="col">Actions</th>
       </tr>
     </thead>
@@ -101,6 +103,8 @@
           {% endif %}
         </td>
         <td>{{ t.created_at|local }}</td>
+        <td>{{ games[t.user_id] }}</td>
+        <td>{% if t.status == "waiting" %}{{ t.created_at|waited }}{% else %}—{% endif %}</td>
         <td>
           <div class="d-flex gap-2">
             <form method="post" action="{{ url_for('staff_action', ticket_id=t.id, action='serve') }}">

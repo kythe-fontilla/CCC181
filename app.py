@@ -7,7 +7,7 @@ from flask_migrate import Migrate
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from datetime import timedelta, timezone
-
+from datetime import datetime 
 from models import Service, Ticket, TicketMember, User, db
 
 load_dotenv()
@@ -21,6 +21,14 @@ db.init_app(app)
 migrate = Migrate(app, db)
 
 PH_TIME = timezone(timedelta(hours=8))  # Philippine time has no daylight saving
+
+@app.template_filter("waited")
+def waited(value):
+    """Minutes since a database time, e.g. '12 min'."""
+    if not value:
+        return ""
+    minutes = int((datetime.now(timezone.utc) - value).total_seconds() // 60)
+    return f"{minutes} min"
 
 @app.template_filter("local")
 def local_time(value):
@@ -123,6 +131,13 @@ def people_ahead(t):
             .where(Ticket.service_id == t.service_id,
                    Ticket.status == "waiting",
                    Ticket.created_at < t.created_at))
+    return db.session.scalar(stmt)
+
+def games_played(user_id):
+    """Count the person's served tickets. Computed, never stored."""
+    stmt = (db.select(func.count())
+            .select_from(Ticket)
+            .where(Ticket.user_id == user_id, Ticket.status == "served"))
     return db.session.scalar(stmt)
 
 def active_services():
@@ -255,6 +270,7 @@ def staff_dashboard():
         short=short_court(),
         court_counts={c: court_players(g) for c, g in used.items()},
         waiting_players=sum(players_of(t) for t in waiting),
+        games={t.user_id: games_played(t.user_id) for t in queue},
     )
 
 STAFF_ACTIONS = ("serve", "no-show")
