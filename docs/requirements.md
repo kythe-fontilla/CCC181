@@ -15,12 +15,12 @@
 | FR-03 | The caretaker can view the waiting list in order and call, serve or mark no-show. | Must | **Yes** | Built (Week 3) |
 | FR-04 | A player can leave the queue. | Should | **Yes** | Built (Week 3) |
 | FR-05 ★ | The caretaker sees which courts are in use and which ticket is on each. | Must | **Yes** | Built (Week 3) |
-| FR-06 ★ | The caretaker can see how many games each waiting team has played and how long they have waited. | Should | **Yes** | Later |
+| FR-06 ★ | The caretaker can see how many games each waiting team has played and how long they have waited. | Should | **Yes** | This week |
 | FR-07 ★ | The caretaker can call the next game: the system picks waiting tickets in join order that add up to exactly 4 players, never splitting a team, and assigns them to a free court. | Must | **Yes** | Built (Week 3) |
 | FR-08 | The caretaker can filter the waiting list by service. | Should | No | Built (Week 3) |
 | FR-09 | The caretaker can add, rename and switch off a service, and cannot delete a service that has tickets. | Must | **Yes** | This week |
 | FR-10 | The caretaker can delete a ticket that was created by mistake. | Should | **Yes** | This week |
-| FR-11 ★ | A player who joins can mark that they are open to a singles game, and the caretaker can choose to start a singles game (2 players) on a free court when few players are at the venue. | Could | **Yes** | This week (partly) |
+| FR-11 ★ | The caretaker can offer singles by adding or switching on a "Singles" service in Manage services. | Could | **Yes** | Later |
 | FR-12 | A player cannot join again while they already have a ticket that is waiting or called. | Must | **Yes** | This week |
 
 ## Non-functional requirements
@@ -46,6 +46,7 @@ This is the smallest version that still solves the problem: a player can join an
 - **Score tracking and game timers:** I observed that games run to 40 minutes because nobody tracks the score *(observation)*, but the queue works without it, and it would need a live scoring screen that I will not build this semester.
 - **Payment of the 50-peso entry fee:** the caretaker collects it by hand today, and the queue does not depend on it.
 - **Verifying who a player is:** FR-12 only stops the same email from holding two active tickets. Players join with a name and email that are not verified, so someone can still join again with a different email or name, or after being listed as another player's partner. The caretaker is the final check, because she sees who came with whom and can mark a no-show or delete a ticket. Accounts and login are planned for another week.
+- **Games with fewer than 4 players (singles):** the caretaker can add a "Singles" service in Manage services, but the queue still calls only complete games of 4. One tester suggested singles when a court is not filled *(interview, usability test)*. I did not see it at the venue, so I did not build the 2-player game logic.
 
 ## Feedback from a real person
 

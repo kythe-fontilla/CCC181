@@ -1,8 +1,7 @@
 from datetime import datetime
 
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import (CheckConstraint, DateTime, ForeignKey, Index, String,
-                        false, func, text, true)
+from sqlalchemy import (CheckConstraint, DateTime, ForeignKey, Index, String, func, text, true)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 db = SQLAlchemy()
@@ -41,8 +40,6 @@ class Ticket(db.Model):
     status: Mapped[str] = mapped_column(String(20), default="waiting",
                                         server_default="waiting")
     court: Mapped[int | None] = mapped_column()
-    open_to_singles: Mapped[bool] = mapped_column(default=False,
-                                                  server_default=false())
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True),
                                                  server_default=func.now())
     called_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

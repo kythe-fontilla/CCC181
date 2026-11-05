@@ -44,12 +44,6 @@ def seed():
 
 APP_NAME = "ShuttleStack"
 
-SERVICES = [
-    {"id": 1, "name": "Doubles: with a partner"},
-    {"id": 2, "name": "Doubles: group of 4"},
-    {"id": 3, "name": "Doubles: looking for a partner"},
-]
-
 COURTS = [1, 2, 3]
 
 GAME_SIZE = 4
@@ -61,15 +55,6 @@ def count_names(text):
 
 def players_of(t):
     return t.players
-
-# Each ticket: number, name, email, partner, service_id, status
-# partner: the other players with you (empty if you are looking for a partner)
-# status is one of: waiting, called, served, no-show
-TICKETS = [
-    {"number": 1, "name": "Dana", "email": "dana@g.msuiit.edu.ph", "partner": "Eli, Fe, Gio", "service_id": 2, "status": "waiting", "court": None, "players": 4},
-    {"number": 2, "name": "Ana", "email": "ana@g.msuiit.edu.ph", "partner": "Ben", "service_id": 1, "status": "waiting", "court": None, "players": 2},
-    {"number": 3, "name": "Carlo", "email": "carlo@g.msuiit.edu.ph", "service_id": 3, "status": "waiting", "court": None, "players": 1},
-]
 
 def courts_in_use():
     """Return {court_number: [tickets]} for courts with a game in progress."""
@@ -158,7 +143,6 @@ def join():
     email = form.get("email", "").strip().lower()
     service_id = form.get("service_id", type=int)
     partner = form.get("partner", "").strip()
-    open_to_singles = form.get("open_to_singles") == "on"
     service = db.session.get(Service, service_id) if service_id else None
 
     errors = {}
@@ -202,7 +186,7 @@ def join():
 
     if user is None:
         user = User(name=name, email=email)
-    ticket = Ticket(user=user, service=service, open_to_singles=open_to_singles,
+    ticket = Ticket(user=user, service=service,
                     members=[TicketMember(name=n) for n in members])
     db.session.add(ticket)
     try:
