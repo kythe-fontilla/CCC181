@@ -9,7 +9,7 @@
     <form method="post" action="{{ url_for('join') }}" novalidate id="join-form">
       <div class="mb-3">
         <label for="name" class="form-label">Your name</label>
-        <input id="name" name="name" type="text" autocomplete="name" required
+        <input id="name" name="name" type="text" autocomplete="name" required maxlength="80"
                class="form-control {% if errors.name %}is-invalid{% endif %}"
                value="{{ form.get('name', '') }}"
                {% if errors.name %}aria-describedby="name-error"{% endif %}>
@@ -20,7 +20,7 @@
 
       <div class="mb-3">
         <label for="email" class="form-label">Your email</label>
-        <input id="email" name="email" type="email" autocomplete="email" required
+        <input id="email" name="email" type="email" autocomplete="email" required maxlength="120"
                class="form-control {% if errors.email %}is-invalid{% endif %}"
                value="{{ form.get('email', '') }}"
                {% if errors.email %}aria-describedby="email-error"{% endif %}>
@@ -50,7 +50,7 @@
 
       <div class="mb-3">
         <label for="partner" class="form-label">Who are you playing with?</label>
-        <input id="partner" name="partner" type="text"
+        <input id="partner" name="partner" type="text" maxlength="250"
                class="form-control {% if errors.partner %}is-invalid{% endif %}"
                value="{{ form.get('partner', '') }}"
                aria-describedby="partner-hint{% if errors.partner %} partner-error{% endif %}">
@@ -62,7 +62,6 @@
           <div id="partner-error" class="invalid-feedback">{{ errors.partner }}</div>
         {% endif %}
       </div>
-
       <button type="submit" class="btn btn-primary w-100" style="min-height:44px">Get a ticket</button>
     </form>
   </div>

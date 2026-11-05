@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Manage services · {{ app_name }}{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-3">Manage services</h1>
+
+<section aria-labelledby="add-heading" class="mb-4">
+  <h2 id="add-heading" class="h5">Add a service</h2>
+  <form method="post" action="{{ url_for('service_create') }}" class="row g-2 align-items-end">
+    <div class="col-12 col-md-8">
+      <label for="new-name" class="form-label mb-1">Service name</label>
+      <input id="new-name" name="name" type="text" maxlength="60" required class="form-control">
+    </div>
+    <div class="col-12 col-md-4">
+      <button type="submit" class="btn btn-primary w-100" style="min-height:44px">Add service</button>
+    </div>
+  </form>
+</section>
+
+<div class="table-responsive">
+  <table class="table align-middle">
+    <caption>All services, including switched-off ones</caption>
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Status</th>
+        <th scope="col">Tickets</th>
+        <th scope="col">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in services %}
+      <tr>
+        <td>
+          <form method="post" id="edit-{{ s.id }}"
+                action="{{ url_for('service_edit', service_id=s.id) }}">
+            <label for="name-{{ s.id }}" class="visually-hidden">Name of service {{ s.id }}</label>
+            <input id="name-{{ s.id }}" name="name" type="text" maxlength="60" required
+                   class="form-control" value="{{ s.name }}">
+          </form>
+        </td>
+        <td>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="active-{{ s.id }}"
+                   name="active" form="edit-{{ s.id }}" {% if s.active %}checked{% endif %}>
+            <label class="form-check-label" for="active-{{ s.id }}">
+              {% if s.active %}Active{% else %}Switched off{% endif %}
+            </label>
+          </div>
+        </td>
+        <td>{{ s.tickets|length }}</td>
+        <td>
+          <div class="d-flex gap-2">
+            <button type="submit" form="edit-{{ s.id }}" class="btn btn-outline-primary"
+                    style="min-height:44px" aria-label="Save changes to {{ s.name }}">Save</button>
+            <form method="post" action="{{ url_for('service_delete', service_id=s.id) }}"
+                  data-confirm="Delete “{{ s.name }}”? This cannot be undone.">
+              <button type="submit" class="btn btn-outline-danger" style="min-height:44px"
+                      aria-label="Delete {{ s.name }}">Delete</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

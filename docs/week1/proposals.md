@@ -24,7 +24,7 @@ a court by asking the teams currently playing.
 | FR-02 | A player can see their ticket number, status and how many teams are ahead | Must |
 | FR-03 | The caretaker can view the waiting list in order and call, serve or mark no-show | Must |
 | FR-04 | A player can leave the queue | Should |
-| FR-05 | The caretaker can assign a called ticket to a court (1 to 3) and see which courts are in use (star) | Should |
+| FR-05 | The caretaker sees which courts are in use and which ticket is on each. | Must |
 | FR-06 | The caretaker can see how many games each waiting team has played and how long they have waited (star) | Should (later) |
 
 ## Observation notes
