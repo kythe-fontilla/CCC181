@@ -15,13 +15,13 @@
 | FR-03 | The caretaker can view the waiting list in order and call, serve or mark no-show. | Must | **Yes** | Built (Week 3) |
 | FR-04 | A player can leave the queue. | Should | **Yes** | Built (Week 3) |
 | FR-05 ★ | The caretaker sees which courts are in use and which ticket is on each. | Must | **Yes** | Built (Week 3) |
-| FR-06 ★ | The caretaker can see how many games each waiting team has played and how long they have waited. | Should | **Yes** | This week |
+| FR-06 ★ | The caretaker can see how many games each waiting team has played and how long they have waited. | Should | **Yes** | Built (Week 4) |
 | FR-07 ★ | The caretaker can call the next game: the system picks waiting tickets in join order that add up to exactly 4 players, never splitting a team, and assigns them to a free court. | Must | **Yes** | Built (Week 3) |
 | FR-08 | The caretaker can filter the waiting list by service. | Should | No | Built (Week 3) |
-| FR-09 | The caretaker can add, rename and switch off a service, and cannot delete a service that has tickets. | Must | **Yes** | This week |
-| FR-10 | The caretaker can delete a ticket that was created by mistake. | Should | **Yes** | This week |
-| FR-11 ★ | The caretaker can offer singles by adding or switching on a "Singles" service in Manage services. | Could | **Yes** | Later |
-| FR-12 | A player cannot join again while they already have a ticket that is waiting or called. | Must | **Yes** | This week |
+| FR-09 | The caretaker can add, rename and switch off a service, and cannot delete a service that has tickets. | Must | **Yes** | Built (Week 4) |
+| FR-10 | The caretaker can delete a ticket that was created by mistake. | Should | **Yes** | Built (Week 4) |
+| FR-11 ★ | The caretaker can offer singles by adding or switching on a "Singles" service in Manage services. | Could | **Yes** | Later, no change |
+| FR-12 | A player cannot join again while they already have a ticket that is waiting or called. | Must | **Yes** | Built (Week 4) |
 
 ## Non-functional requirements
 
@@ -29,7 +29,7 @@
 | --- | --- | --- | --- |
 | NFR-01 | No ticket is lost when the server or the database restarts. | Reliability | Must |
 | NFR-02 | Two players can never get the same ticket number, even if they join at the same moment. | Data integrity | Must |
-| NFR-03 | My place loads in under 2 seconds on mobile data. | Performance | Should |
+| NFR-03 | My place loads in under 2 seconds on mobile data. *Measured in Week 4 on `/queue/1` at 375 px: 0.67 s on Fast 4G (target met) and 2.15 s on Slow 4G (narrowly missed).* | Performance | Should |
 | NFR-04 | Every screen scores 90 or higher in the Lighthouse accessibility check. | Accessibility | Must |
 | NFR-05 | No password or secret key is stored in the repository. | Security | Must |
 | NFR-06 | A court is never assigned a game of more than 4 players, and a team is never split across two courts. | Data integrity | Must |
