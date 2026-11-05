@@ -335,3 +335,51 @@ def call_next():
     numbers = ", ".join(f"#{t.id}" for t in group)
     flash(f"{message} {numbers}.", "info")
     return redirect(url_for("staff_dashboard"))
+
+@app.get("/staff/services")
+def services_list():
+    return render_template("services.html", services=all_services())
+
+@app.post("/staff/services")
+def service_create():
+    name = request.form.get("name", "").strip()
+    if not name or len(name) > 60:
+        flash("Enter a service name (up to 60 characters).", "danger")
+        return redirect(url_for("services_list"))
+    db.session.add(Service(name=name))
+    try:
+        db.session.commit()
+        flash(f"Service “{name}” added.", "success")
+    except IntegrityError:
+        db.session.rollback()
+        flash(f"A service named “{name}” already exists.", "danger")
+    return redirect(url_for("services_list"))
+
+@app.post("/staff/services/<int:service_id>/edit")
+def service_edit(service_id):
+    s = db.get_or_404(Service, service_id)
+    name = request.form.get("name", "").strip()
+    if not name or len(name) > 60:
+        flash("Enter a service name (up to 60 characters).", "danger")
+        return redirect(url_for("services_list"))
+    s.name = name
+    s.active = request.form.get("active") == "on"  # unticked boxes are not sent
+    try:
+        db.session.commit()
+        flash(f"Service “{name}” updated.", "success")
+    except IntegrityError:
+        db.session.rollback()
+        flash(f"A service named “{name}” already exists.", "danger")
+    return redirect(url_for("services_list"))
+
+@app.post("/staff/services/<int:service_id>/delete")
+def service_delete(service_id):
+    s = db.get_or_404(Service, service_id)
+    if s.tickets:
+        flash(f"“{s.name}” has tickets, so it cannot be deleted. Switch it off instead.", "danger")
+        return redirect(url_for("services_list"))
+    name = s.name
+    db.session.delete(s)
+    db.session.commit()
+    flash(f"Service “{name}” deleted.", "warning")
+    return redirect(url_for("services_list"))
