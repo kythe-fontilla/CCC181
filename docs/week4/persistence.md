@@ -48,4 +48,26 @@ All 13 tickets, their statuses, their services and their `created_at` times are 
 
 ## 11b. Rebuild from scratch
 
-TODO: fill this in after running the rebuild.
+This test deletes all the data, so I ran it only after 11a. It checks that my migrations can rebuild the whole database on a computer that has never seen it.
+ 
+### Steps
+ 
+1. Stopped Flask with Ctrl+C.
+2. Ran `docker compose down -v`. This deleted the container and the `pgdata` volume, so all tickets were gone.
+3. Ran `docker compose up -d` and waited until `docker compose ps` showed the database as healthy.
+4. Ran `flask --app app db upgrade`. All three migrations ran and created the tables from nothing. I did not use `db.create_all()`.
+5. Ran `flask --app app seed`, which added the three starting services.
+6. Started Flask with `flask --app app run --debug`.
+### Checks
+ 
+The join form lists the three services from the database:
+ 
+![Join form after rebuild](screenshots/rebuild-join.png)
+ 
+I joined with an email and landed on My place, and the new ticket shows on the staff dashboard:
+ 
+![Dashboard after rebuild](screenshots/rebuild-dashboard.png)
+ 
+### Result
+ 
+The app opened, showed the three services, and let me join. The database can be rebuilt from the migrations and `seed` alone, so no table or column is missing from them.
